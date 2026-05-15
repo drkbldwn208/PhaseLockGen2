@@ -1,15 +1,15 @@
 {
   "schema": "xilinx.com:schema:json_instance:1.0",
   "ip_inst": {
-    "xci_name": "design_1_ps8_0_axi_periph_0",
-    "cell_name": "ps8_0_axi_periph",
+    "xci_name": "design_1_axi_interconnect_0_0",
+    "cell_name": "axi_interconnect_0",
     "component_reference": "xilinx.com:ip:axi_interconnect:2.1",
     "ip_revision": "32",
-    "gen_directory": "../../../../../../TransportPhaseLock.gen/sources_1/bd/design_1/ip/design_1_ps8_0_axi_periph_0",
+    "gen_directory": "../../../../../../TransportPhaseLock.gen/sources_1/bd/design_1/ip/design_1_axi_interconnect_0_0",
     "parameters": {
       "component_parameters": {
-        "NUM_SI": [ { "value": "2", "value_src": "user", "resolve_type": "user", "format": "long", "usage": "all" } ],
-        "NUM_MI": [ { "value": "16", "value_src": "user", "resolve_type": "user", "format": "long", "usage": "all" } ],
+        "NUM_SI": [ { "value": "1", "resolve_type": "user", "format": "long", "usage": "all" } ],
+        "NUM_MI": [ { "value": "5", "value_src": "user", "resolve_type": "user", "format": "long", "usage": "all" } ],
         "STRATEGY": [ { "value": "0", "resolve_type": "user", "format": "long", "usage": "all" } ],
         "ENABLE_ADVANCED_OPTIONS": [ { "value": "0", "resolve_type": "user", "format": "long", "usage": "all" } ],
         "ENABLE_PROTOCOL_CHECKERS": [ { "value": "0", "resolve_type": "user", "format": "long", "usage": "all" } ],
@@ -322,7 +322,7 @@
         "S13_ARB_PRIORITY": [ { "value": "0", "resolve_type": "user", "format": "long", "usage": "all" } ],
         "S14_ARB_PRIORITY": [ { "value": "0", "resolve_type": "user", "format": "long", "usage": "all" } ],
         "S15_ARB_PRIORITY": [ { "value": "0", "resolve_type": "user", "format": "long", "usage": "all" } ],
-        "Component_Name": [ { "value": "design_1_ps8_0_axi_periph_0", "resolve_type": "user", "usage": "all" } ]
+        "Component_Name": [ { "value": "design_1_axi_interconnect_0_0", "resolve_type": "user", "usage": "all" } ]
       },
       "project_parameters": {
         "ARCHITECTURE": [ { "value": "zynquplusRFSOC" } ],
@@ -342,7 +342,7 @@
         "IPCONTEXT": [ { "value": "IP_Integrator_AppCore" } ],
         "IPREVISION": [ { "value": "32" } ],
         "MANAGED": [ { "value": "TRUE" } ],
-        "OUTPUTDIR": [ { "value": "../../../../../../TransportPhaseLock.gen/sources_1/bd/design_1/ip/design_1_ps8_0_axi_periph_0" } ],
+        "OUTPUTDIR": [ { "value": "../../../../../../TransportPhaseLock.gen/sources_1/bd/design_1/ip/design_1_axi_interconnect_0_0" } ],
         "SELECTEDSIMMODEL": [ { "value": "" } ],
         "SHAREDDIR": [ { "value": "../../ipshared" } ],
         "SWVERSION": [ { "value": "2024.1" } ],

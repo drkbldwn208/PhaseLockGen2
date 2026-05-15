@@ -28,8 +28,14 @@ module PhaseAccumulator_Wrapper #(
     input [PHASE_WIDTH-1:0] center_freq_word,
     input [PHASE_WIDTH*8-1:0] pi_control_in,
     
+    input wire [PHASE_WIDTH*8-1:0] perturb_in_tdata,
+    input wire perturb_in_tvalid,
+    output wire perturb_in_tready,
+    
     output [PHASE_WIDTH*8-1:0] phase_out
 );
+
+wire [PHASE_WIDTH*8-1:0] raw_phase_out;
 
     PhaseAccumulator_8Lane #(
     .PHASE_WIDTH(32)
@@ -38,7 +44,16 @@ module PhaseAccumulator_Wrapper #(
     .rst_n(rst_n),
     .center_freq_word(center_freq_word),
     .pi_control_in(pi_control_in),
-    .phase_out(phase_out)
+    .phase_out(raw_phase_out)
 );
+
+genvar i;
+generate  
+    for (i = 0; i < 8; i = i+1) begin
+        assign phase_out[i*PHASE_WIDTH +: PHASE_WIDTH] = raw_phase_out[i*PHASE_WIDTH +: PHASE_WIDTH] + perturb_in_tdata[i*PHASE_WIDTH +: PHASE_WIDTH];
+    end
+endgenerate 
+
+assign perturb_in_tready = 1'b1;
  
 endmodule

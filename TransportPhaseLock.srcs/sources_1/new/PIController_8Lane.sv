@@ -22,7 +22,7 @@
 
 module PIController_8Lane #(
   parameter int CONTROL_WIDTH = 32,
-  parameter int ERROR_WIDTH = 12,
+  parameter int ERROR_WIDTH = 20,
   parameter int KP_WIDTH = 16,
   parameter int KI_WIDTH = 16
 )(
@@ -166,37 +166,26 @@ module PIController_8Lane #(
         error_in_dly3[i] <= error_in_dly2[i];
       end
 
-      //Multiply by KI, add each to global accumulator to get I products for each lane
       for(int i = 0; i < 8; i++) begin
         i_products[i] <= $signed(s3[i]) * $signed(ki_reg);
         error_in_dly4[i] <= error_in_dly3[i];
       end
 
-
-
-      //Update global accumulator based on previous clock cycle's integrator outputs
       global_accumulator <= global_accumulator + i_products[7];
 
 
-
-      //Add I products to global accumulator to get integrator outputs for each lane
       for(int i = 0; i < 8; i++) begin
         integrator_out[i] <= global_accumulator + i_products[i];
 
         p_products[i] <= $signed(error_in_dly4[i]) * $signed(kp_reg);
       end
 
-
-
-      //Shift P and I products by bit shift registers
       for(int i = 0; i < 8; i++) begin
         p_products_shifted[i] <= p_products[i] >>> kp_bit_shift_right_reg;
         integrator_out_shifted[i] <= integrator_out[i] >>> ki_bit_shift_right_reg;
       end
 
 
-
-      //Add P and I products to get PI outputs for each lane
       for(int i = 0; i < 8; i++) begin
         pi_output_reg[i*CONTROL_WIDTH +: CONTROL_WIDTH] <= p_products_shifted[i] + integrator_out_shifted[i];
       end

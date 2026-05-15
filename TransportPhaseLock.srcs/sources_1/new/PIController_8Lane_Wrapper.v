@@ -22,31 +22,35 @@
 
 module PIController_Wrapper #(
     parameter CONTROL_WIDTH = 32,
-    parameter ERROR_WIDTH = 12,
+    parameter ERROR_WIDTH = 20,
     parameter KP_WIDTH = 16,
     parameter KI_WIDTH = 16
     )(
-    input clk,
-    input rst_n,
-    input [ERROR_WIDTH*8 - 1:0] error_signal_unfolded,
-    input [KP_WIDTH - 1:0] kp_in,
-    input [KI_WIDTH - 1:0] ki_in,
-    input [4:0] kp_right_bit_shift_in,
-    input [4:0] ki_right_bit_shift_in,
-    output [CONTROL_WIDTH*8 - 1:0] control_output,
-    input loop_en,
-    input integrator_gpio_rst
+    input wire clk,
+    input wire rst_n,
+    input wire [ERROR_WIDTH*8 - 1:0] error_signal_unfolded,
+    input wire [KP_WIDTH - 1:0] kp_in,
+    input wire [KI_WIDTH - 1:0] ki_in,
+    input wire [4:0] kp_right_bit_shift_in,
+    input wire [4:0] ki_right_bit_shift_in,
+    output wire [CONTROL_WIDTH*8 - 1:0] control_output,
+    input wire loop_en,
+    input wire integrator_gpio_rst,
+    output wire [CONTROL_WIDTH*8 - 1:0] control_out_tdata,
+    output wire control_out_tvalid,
+    input wire control_out_tready
     );
     
    wire [ERROR_WIDTH*8 - 1:0] error_in;
    assign error_in = loop_en ? error_signal_unfolded : 96'b0;
-    
+   assign control_out_tdata = control_output;
+   assign control_out_tvalid = 1'b1;    
 
   PIController_8Lane #(
-    .CONTROL_WIDTH(32),
-    .ERROR_WIDTH(12),
-    .KP_WIDTH(16),
-    .KI_WIDTH(16)
+    .CONTROL_WIDTH(CONTROL_WIDTH),
+    .ERROR_WIDTH(ERROR_WIDTH),
+    .KP_WIDTH(KP_WIDTH),
+    .KI_WIDTH(KI_WIDTH)
     ) PIControllerInst (
     .clk(clk),
     .rst_n(rst_n),
