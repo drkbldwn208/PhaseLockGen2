@@ -33,8 +33,9 @@ module ErrorSignalTruncation(
     );
 
     assign m_axis_tvalid = s_axis_tvalid;
-    assign s_axis_tready = m_axis_tready;
-
+    //assign s_axis_tready = m_axis_tready;
+    assign s_axis_tready = 1'b1;
+    
     genvar i;
     generate
         for (i=0; i<8; i = i+1) begin
