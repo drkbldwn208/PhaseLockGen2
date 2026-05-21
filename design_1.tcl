@@ -46,7 +46,7 @@ if { [string first $scripts_vivado_version $current_vivado_version] == -1 } {
 
 # The design that will be created by this Tcl script contains the following 
 # module references:
-# PhaseExtractor_Wrapper, PhaseExtractor_Wrapper, PIController_Wrapper, PhaseAccumulator_Wrapper, NCO_Wrapper, AXISConstant, AxisConstant14Samples, ErrorSignalSignExtension, axis_tlast_gen, axis_tlast_gen, axis_tlast_gen, ErrorSignalSignExtension, pmod_da2_trigger, ErrorSignal_Wrapper, ErrorSignalTruncation, axis_probe, ErrorSignalTruncation, axis_tlast_gen
+# PhaseExtractor_Wrapper, PhaseExtractor_Wrapper, PIController_Wrapper, PhaseAccumulator_Wrapper, NCO_Wrapper, AXISConstant, AxisConstant14Samples, ErrorSignalSignExtension, axis_tlast_gen, axis_tlast_gen, axis_tlast_gen, ErrorSignalSignExtension, pmod_da2_trigger, ErrorSignal_Wrapper, ErrorSignalTruncation, axis_probe, ErrorSignalTruncation, axis_tlast_gen, axis_power_mod
 
 # Please add the sources of those modules before sourcing this Tcl script.
 
@@ -191,6 +191,7 @@ ErrorSignalTruncation\
 axis_probe\
 ErrorSignalTruncation\
 axis_tlast_gen\
+axis_power_mod\
 "
 
    set list_mods_missing ""
@@ -641,21 +642,24 @@ Port;FD4A0000;FD4AFFFF;0|FPD;DPDMA;FD4C0000;FD4CFFFF;0|FPD;DDR_XMPU5_CFG;FD05000
     CONFIG.DAC1_Refclk_Freq {491.520} \
     CONFIG.DAC1_Sampling_Rate {6.88128} \
     CONFIG.DAC_Data_Width00 {8} \
+    CONFIG.DAC_Data_Width01 {8} \
     CONFIG.DAC_Data_Width02 {8} \
     CONFIG.DAC_Data_Width10 {14} \
     CONFIG.DAC_Data_Width12 {14} \
     CONFIG.DAC_Interpolation_Mode00 {2} \
+    CONFIG.DAC_Interpolation_Mode01 {4} \
     CONFIG.DAC_Interpolation_Mode02 {4} \
     CONFIG.DAC_Interpolation_Mode10 {4} \
     CONFIG.DAC_Interpolation_Mode12 {4} \
     CONFIG.DAC_Mixer_Mode00 {2} \
     CONFIG.DAC_Mixer_Mode02 {0} \
+    CONFIG.DAC_Mixer_Type01 {2} \
     CONFIG.DAC_Mixer_Type02 {2} \
     CONFIG.DAC_Mixer_Type10 {2} \
     CONFIG.DAC_Mixer_Type12 {2} \
     CONFIG.DAC_Mode10 {0} \
     CONFIG.DAC_Slice00_Enable {true} \
-    CONFIG.DAC_Slice01_Enable {false} \
+    CONFIG.DAC_Slice01_Enable {true} \
     CONFIG.DAC_Slice02_Enable {true} \
     CONFIG.DAC_Slice03_Enable {false} \
     CONFIG.DAC_Slice10_Enable {true} \
@@ -1032,7 +1036,7 @@ Port;FD4A0000;FD4AFFFF;0|FPD;DPDMA;FD4C0000;FD4CFFFF;0|FPD;DDR_XMPU5_CFG;FD05000
 
   # Create instance: axi_interconnect_0, and set properties
   set axi_interconnect_0 [ create_bd_cell -type ip -vlnv xilinx.com:ip:axi_interconnect:2.1 axi_interconnect_0 ]
-  set_property CONFIG.NUM_MI {6} $axi_interconnect_0
+  set_property CONFIG.NUM_MI {7} $axi_interconnect_0
 
 
   # Create instance: ErrorSignalTruncation_1, and set properties
@@ -1081,6 +1085,26 @@ Port;FD4A0000;FD4AFFFF;0|FPD;DPDMA;FD4C0000;FD4CFFFF;0|FPD;DDR_XMPU5_CFG;FD05000
   set_property CONFIG.C_ALL_INPUTS {1} $axi_gpio_11
 
 
+  # Create instance: axi_gpio_12, and set properties
+  set axi_gpio_12 [ create_bd_cell -type ip -vlnv xilinx.com:ip:axi_gpio:2.0 axi_gpio_12 ]
+  set_property -dict [list \
+    CONFIG.C_ALL_OUTPUTS {1} \
+    CONFIG.C_DOUT_DEFAULT {0x00007FFF} \
+    CONFIG.C_GPIO_WIDTH {16} \
+  ] $axi_gpio_12
+
+
+  # Create instance: axis_power_mod_0, and set properties
+  set block_name axis_power_mod
+  set block_cell_name axis_power_mod_0
+  if { [catch {set axis_power_mod_0 [create_bd_cell -type module -reference $block_name $block_cell_name] } errmsg] } {
+     catch {common::send_gid_msg -ssname BD::TCL -id 2095 -severity "ERROR" "Unable to add referenced block <$block_name>. Please add the files for ${block_name}'s definition into the project."}
+     return 1
+   } elseif { $axis_power_mod_0 eq "" } {
+     catch {common::send_gid_msg -ssname BD::TCL -id 2096 -severity "ERROR" "Unable to referenced block <$block_name>. Please add the files for ${block_name}'s definition into the project."}
+     return 1
+   }
+  
   # Create interface connections
   connect_bd_intf_net -intf_net AXISConstant_0_m_axis [get_bd_intf_pins AXISConstant_0/m_axis] [get_bd_intf_pins usp_rf_data_converter_0/s02_axis]
   connect_bd_intf_net -intf_net AxisConstant14Samples_0_m_axis [get_bd_intf_pins AxisConstant14Samples_0/m_axis] [get_bd_intf_pins axis_broadcaster_0/S_AXIS]
@@ -1100,12 +1124,14 @@ Port;FD4A0000;FD4AFFFF;0|FPD;DPDMA;FD4C0000;FD4CFFFF;0|FPD;DDR_XMPU5_CFG;FD05000
   connect_bd_intf_net -intf_net axi_interconnect_0_M03_AXI [get_bd_intf_pins axi_interconnect_0/M03_AXI] [get_bd_intf_pins axi_gpio_10/S_AXI]
   connect_bd_intf_net -intf_net axi_interconnect_0_M04_AXI [get_bd_intf_pins axi_interconnect_0/M04_AXI] [get_bd_intf_pins axi_dma_3/S_AXI_LITE]
   connect_bd_intf_net -intf_net axi_interconnect_0_M05_AXI [get_bd_intf_pins axi_interconnect_0/M05_AXI] [get_bd_intf_pins axi_gpio_11/S_AXI]
+  connect_bd_intf_net -intf_net axi_interconnect_0_M06_AXI [get_bd_intf_pins axi_interconnect_0/M06_AXI] [get_bd_intf_pins axi_gpio_12/S_AXI]
   connect_bd_intf_net -intf_net axis_broadcaster_0_M00_AXIS [get_bd_intf_pins axis_broadcaster_0/M00_AXIS] [get_bd_intf_pins usp_rf_data_converter_0/s10_axis]
   connect_bd_intf_net -intf_net axis_broadcaster_0_M01_AXIS [get_bd_intf_pins axis_broadcaster_0/M01_AXIS] [get_bd_intf_pins usp_rf_data_converter_0/s12_axis]
   connect_bd_intf_net -intf_net axis_broadcaster_1_M00_AXIS [get_bd_intf_pins axis_broadcaster_1/M00_AXIS] [get_bd_intf_pins demod_err_0/ref_in]
   connect_bd_intf_net -intf_net axis_broadcaster_1_M01_AXIS [get_bd_intf_pins axis_broadcaster_1/M01_AXIS] [get_bd_intf_pins demod_ctrl_0/ref_in]
   connect_bd_intf_net -intf_net axis_broadcaster_1_M02_AXIS [get_bd_intf_pins axis_broadcaster_1/M02_AXIS] [get_bd_intf_pins demod_err_1/ref_in]
   connect_bd_intf_net -intf_net axis_broadcaster_2_M00_AXIS [get_bd_intf_pins axis_broadcaster_2/M00_AXIS] [get_bd_intf_pins ErrorSignal_Wrapper_0/perturb_in]
+  connect_bd_intf_net -intf_net axis_power_mod_0_m_axis [get_bd_intf_pins axis_power_mod_0/m_axis] [get_bd_intf_pins usp_rf_data_converter_0/s01_axis]
   connect_bd_intf_net -intf_net axis_probe_0_outputPT [get_bd_intf_pins axis_probe_0/outputPT] [get_bd_intf_pins ErrorSignalTruncation_1/s_axis]
   connect_bd_intf_net -intf_net axis_tlast_gen_0_m_axis [get_bd_intf_pins axis_tlast_gen_0/m_axis] [get_bd_intf_pins axi_dma_0/S_AXIS_S2MM]
   connect_bd_intf_net -intf_net axis_tlast_gen_1_m_axis [get_bd_intf_pins axis_tlast_gen_1/m_axis] [get_bd_intf_pins axi_dma_1/S_AXIS_S2MM]
@@ -1146,7 +1172,7 @@ Port;FD4A0000;FD4AFFFF;0|FPD;DPDMA;FD4C0000;FD4CFFFF;0|FPD;DDR_XMPU5_CFG;FD05000
   # Create port connections
   connect_bd_net -net ErrorSignalSignExten_0_s_axis_tready [get_bd_pins ErrorSignalSignExten_0/s_axis_tready] [get_bd_pins PhaseExtractor_Wrapp_1/tready_passthrough]
   connect_bd_net -net ErrorSignalSignExten_1_s_axis_tready [get_bd_pins ErrorSignalSignExten_1/s_axis_tready] [get_bd_pins PhaseExtractor_Wrapp_0/tready_passthrough]
-  connect_bd_net -net ErrorSignal_Wrapper_0_error_signal_out [get_bd_pins ErrorSignal_Wrapper_0/error_signal_out] [get_bd_pins PIController_Wrapper_0/error_signal_unfolded] [get_bd_pins ErrorSignalTruncation_0/s_axis_tdata]
+  connect_bd_net -net ErrorSignal_Wrapper_0_error_signal_out [get_bd_pins ErrorSignal_Wrapper_0/error_signal_out] [get_bd_pins ErrorSignalTruncation_0/s_axis_tdata] [get_bd_pins PIController_Wrapper_0/error_signal_unfolded]
   connect_bd_net -net ErrorSignal_Wrapper_0_raw_error_out_tdata [get_bd_pins ErrorSignal_Wrapper_0/raw_error_out_tdata] [get_bd_pins demod_err_0/probe_in_TDATA]
   connect_bd_net -net ErrorSignal_Wrapper_0_raw_error_out_tvalid [get_bd_pins ErrorSignal_Wrapper_0/raw_error_out_tvalid] [get_bd_pins demod_err_0/probe_in_TVALID]
   connect_bd_net -net ErrorSignal_Wrapper_0_summed_error_out_tdata [get_bd_pins ErrorSignal_Wrapper_0/summed_error_out_tdata] [get_bd_pins demod_err_1/probe_in_TDATA]
@@ -1162,6 +1188,7 @@ Port;FD4A0000;FD4AFFFF;0|FPD;DPDMA;FD4C0000;FD4CFFFF;0|FPD;DDR_XMPU5_CFG;FD05000
   connect_bd_net -net PhaseExtractor_Wrapp_1_tvalid_passthrough [get_bd_pins PhaseExtractor_Wrapp_1/tvalid_passthrough] [get_bd_pins ErrorSignalSignExten_0/s_axis_tvalid]
   connect_bd_net -net axi_gpio_0_gpio_io_o [get_bd_pins axi_gpio_0/gpio_io_o] [get_bd_pins PhaseAccumulator_Wra_0/center_freq_word]
   connect_bd_net -net axi_gpio_10_gpio_io_o [get_bd_pins axi_gpio_10/gpio_io_o] [get_bd_pins axis_tlast_gen_3/pkt_length_cycles]
+  connect_bd_net -net axi_gpio_12_gpio_io_o [get_bd_pins axi_gpio_12/gpio_io_o] [get_bd_pins axis_power_mod_0/async_in]
   connect_bd_net -net axi_gpio_1_gpio2_io_o [get_bd_pins axi_gpio_1/gpio2_io_o] [get_bd_pins PIController_Wrapper_0/ki_in]
   connect_bd_net -net axi_gpio_1_gpio_io_o [get_bd_pins axi_gpio_1/gpio_io_o] [get_bd_pins PIController_Wrapper_0/kp_in]
   connect_bd_net -net axi_gpio_2_gpio2_io_o [get_bd_pins axi_gpio_2/gpio2_io_o] [get_bd_pins PIController_Wrapper_0/ki_right_bit_shift_in]
@@ -1186,12 +1213,12 @@ Port;FD4A0000;FD4AFFFF;0|FPD;DPDMA;FD4C0000;FD4CFFFF;0|FPD;DDR_XMPU5_CFG;FD05000
   connect_bd_net -net pmod_da2_trigger_0_dac_cs [get_bd_pins pmod_da2_trigger_0/dac_cs] [get_bd_ports dac_cs_0]
   connect_bd_net -net pmod_da2_trigger_0_dac_mosi [get_bd_pins pmod_da2_trigger_0/dac_mosi] [get_bd_ports dac_mosi_0]
   connect_bd_net -net pmod_da2_trigger_0_dac_sclk [get_bd_pins pmod_da2_trigger_0/dac_sclk] [get_bd_ports dac_sclk_0]
-  connect_bd_net -net proc_sys_reset_0_peripheral_aresetn [get_bd_pins proc_sys_reset_0/peripheral_aresetn] [get_bd_pins usp_rf_data_converter_0/m0_axis_aresetn] [get_bd_pins usp_rf_data_converter_0/m1_axis_aresetn] [get_bd_pins usp_rf_data_converter_0/s0_axis_aresetn] [get_bd_pins usp_rf_data_converter_0/s1_axis_aresetn] [get_bd_pins NCO_Wrapper_0/rst_n] [get_bd_pins axis_broadcaster_0/aresetn] [get_bd_pins axis_tlast_gen_0/aresetn] [get_bd_pins axis_tlast_gen_1/aresetn] [get_bd_pins smartconnect_0/aresetn] [get_bd_pins axis_tlast_gen_2/aresetn] [get_bd_pins PhaseExtractor_Wrapp_0/rst_n] [get_bd_pins PhaseExtractor_Wrapp_1/rst_n] [get_bd_pins usp_rf_data_converter_0/m2_axis_aresetn] [get_bd_pins ps8_0_axi_periph/M13_ARESETN] [get_bd_pins ps8_0_axi_periph/M12_ARESETN] [get_bd_pins PhaseAccumulator_Wra_0/rst_n] [get_bd_pins ErrorSignal_Wrapper_0/rst_n] [get_bd_pins axis_broadcaster_1/aresetn] [get_bd_pins PIController_Wrapper_0/rst_n] [get_bd_pins ps8_0_axi_periph/M14_ARESETN] [get_bd_pins ps8_0_axi_periph/M15_ARESETN] [get_bd_pins demod_ctrl_0/ap_rst_n] [get_bd_pins demod_err_0/ap_rst_n] [get_bd_pins demod_err_1/ap_rst_n] [get_bd_pins axis_tlast_gen_3/aresetn] [get_bd_pins axis_broadcaster_2/aresetn] [get_bd_pins perturbation_gen_0/ap_rst_n] [get_bd_pins axis_probe_0/rst_n]
-  connect_bd_net -net rst_ps8_0_99M_peripheral_aresetn [get_bd_pins rst_ps8_0_99M/peripheral_aresetn] [get_bd_pins ps8_0_axi_periph/S00_ARESETN] [get_bd_pins usp_rf_data_converter_0/s_axi_aresetn] [get_bd_pins ps8_0_axi_periph/M00_ARESETN] [get_bd_pins ps8_0_axi_periph/ARESETN] [get_bd_pins ps8_0_axi_periph/S01_ARESETN] [get_bd_pins axi_gpio_0/s_axi_aresetn] [get_bd_pins ps8_0_axi_periph/M01_ARESETN] [get_bd_pins axi_gpio_1/s_axi_aresetn] [get_bd_pins ps8_0_axi_periph/M02_ARESETN] [get_bd_pins axi_gpio_2/s_axi_aresetn] [get_bd_pins ps8_0_axi_periph/M03_ARESETN] [get_bd_pins axi_gpio_3/s_axi_aresetn] [get_bd_pins ps8_0_axi_periph/M04_ARESETN] [get_bd_pins axi_gpio_4/s_axi_aresetn] [get_bd_pins ps8_0_axi_periph/M05_ARESETN] [get_bd_pins axi_dma_0/axi_resetn] [get_bd_pins ps8_0_axi_periph/M06_ARESETN] [get_bd_pins axi_dma_1/axi_resetn] [get_bd_pins ps8_0_axi_periph/M07_ARESETN] [get_bd_pins axi_dma_2/axi_resetn] [get_bd_pins axi_gpio_5/s_axi_aresetn] [get_bd_pins ps8_0_axi_periph/M08_ARESETN] [get_bd_pins ps8_0_axi_periph/M09_ARESETN] [get_bd_pins axi_gpio_6/s_axi_aresetn] [get_bd_pins ps8_0_axi_periph/M10_ARESETN] [get_bd_pins ps8_0_axi_periph/M11_ARESETN] [get_bd_pins axi_gpio_7/s_axi_aresetn] [get_bd_pins axi_interconnect_0/ARESETN] [get_bd_pins axi_interconnect_0/S00_ARESETN] [get_bd_pins axi_interconnect_0/M00_ARESETN] [get_bd_pins axi_interconnect_0/M01_ARESETN] [get_bd_pins axi_gpio_8/s_axi_aresetn] [get_bd_pins axi_gpio_9/s_axi_aresetn] [get_bd_pins axi_interconnect_0/M02_ARESETN] [get_bd_pins axi_dma_3/axi_resetn] [get_bd_pins axi_interconnect_0/M03_ARESETN] [get_bd_pins axi_interconnect_0/M04_ARESETN] [get_bd_pins axi_gpio_10/s_axi_aresetn] [get_bd_pins axi_interconnect_0/M05_ARESETN] [get_bd_pins axi_gpio_11/s_axi_aresetn]
-  connect_bd_net -net usp_rf_data_converter_0_clk_adc0 [get_bd_pins usp_rf_data_converter_0/clk_adc1] [get_bd_pins usp_rf_data_converter_0/m0_axis_aclk] [get_bd_pins usp_rf_data_converter_0/m1_axis_aclk] [get_bd_pins usp_rf_data_converter_0/s0_axis_aclk] [get_bd_pins usp_rf_data_converter_0/s1_axis_aclk] [get_bd_pins proc_sys_reset_0/slowest_sync_clk] [get_bd_pins NCO_Wrapper_0/clk] [get_bd_pins AXISConstant_0/aclk] [get_bd_pins axis_broadcaster_0/aclk] [get_bd_pins AxisConstant14Samples_0/aclk] [get_bd_pins xpm_cdc_gen_1/dest_clk] [get_bd_pins xpm_cdc_gen_0/dest_clk] [get_bd_pins axis_tlast_gen_0/aclk] [get_bd_pins axi_dma_0/m_axi_s2mm_aclk] [get_bd_pins axis_tlast_gen_1/aclk] [get_bd_pins axi_dma_1/m_axi_s2mm_aclk] [get_bd_pins smartconnect_0/aclk] [get_bd_pins zynq_ultra_ps_e_0/saxihp0_fpd_aclk] [get_bd_pins axi_dma_2/m_axi_s2mm_aclk] [get_bd_pins axis_tlast_gen_2/aclk] [get_bd_pins PhaseExtractor_Wrapp_0/clk] [get_bd_pins PhaseExtractor_Wrapp_1/clk] [get_bd_pins ErrorSignalSignExten_0/clk] [get_bd_pins usp_rf_data_converter_0/m2_axis_aclk] [get_bd_pins ErrorSignalSignExten_1/clk] [get_bd_pins ps8_0_axi_periph/M13_ACLK] [get_bd_pins ps8_0_axi_periph/M12_ACLK] [get_bd_pins PhaseAccumulator_Wra_0/clk] [get_bd_pins ErrorSignal_Wrapper_0/clk] [get_bd_pins axis_broadcaster_1/aclk] [get_bd_pins PIController_Wrapper_0/clk] [get_bd_pins ps8_0_axi_periph/M14_ACLK] [get_bd_pins ps8_0_axi_periph/M15_ACLK] [get_bd_pins demod_ctrl_0/ap_clk] [get_bd_pins demod_err_0/ap_clk] [get_bd_pins demod_err_1/ap_clk] [get_bd_pins axi_dma_3/m_axi_s2mm_aclk] [get_bd_pins axis_tlast_gen_3/aclk] [get_bd_pins axis_broadcaster_2/aclk] [get_bd_pins ErrorSignalTruncation_0/clk] [get_bd_pins ErrorSignalTruncation_1/clk] [get_bd_pins perturbation_gen_0/ap_clk] [get_bd_pins axis_probe_0/clk]
+  connect_bd_net -net proc_sys_reset_0_peripheral_aresetn [get_bd_pins proc_sys_reset_0/peripheral_aresetn] [get_bd_pins usp_rf_data_converter_0/m0_axis_aresetn] [get_bd_pins usp_rf_data_converter_0/m1_axis_aresetn] [get_bd_pins usp_rf_data_converter_0/s0_axis_aresetn] [get_bd_pins usp_rf_data_converter_0/s1_axis_aresetn] [get_bd_pins NCO_Wrapper_0/rst_n] [get_bd_pins axis_broadcaster_0/aresetn] [get_bd_pins axis_tlast_gen_0/aresetn] [get_bd_pins axis_tlast_gen_1/aresetn] [get_bd_pins smartconnect_0/aresetn] [get_bd_pins axis_tlast_gen_2/aresetn] [get_bd_pins PhaseExtractor_Wrapp_0/rst_n] [get_bd_pins PhaseExtractor_Wrapp_1/rst_n] [get_bd_pins usp_rf_data_converter_0/m2_axis_aresetn] [get_bd_pins ps8_0_axi_periph/M13_ARESETN] [get_bd_pins ps8_0_axi_periph/M12_ARESETN] [get_bd_pins ErrorSignal_Wrapper_0/rst_n] [get_bd_pins axis_broadcaster_1/aresetn] [get_bd_pins ps8_0_axi_periph/M14_ARESETN] [get_bd_pins ps8_0_axi_periph/M15_ARESETN] [get_bd_pins demod_ctrl_0/ap_rst_n] [get_bd_pins demod_err_0/ap_rst_n] [get_bd_pins demod_err_1/ap_rst_n] [get_bd_pins axis_tlast_gen_3/aresetn] [get_bd_pins axis_broadcaster_2/aresetn] [get_bd_pins axis_probe_0/rst_n] [get_bd_pins axis_power_mod_0/rst_n] [get_bd_pins PIController_Wrapper_0/rst_n] [get_bd_pins PhaseAccumulator_Wra_0/rst_n] [get_bd_pins perturbation_gen_0/ap_rst_n]
+  connect_bd_net -net rst_ps8_0_99M_peripheral_aresetn [get_bd_pins rst_ps8_0_99M/peripheral_aresetn] [get_bd_pins ps8_0_axi_periph/S00_ARESETN] [get_bd_pins usp_rf_data_converter_0/s_axi_aresetn] [get_bd_pins ps8_0_axi_periph/M00_ARESETN] [get_bd_pins ps8_0_axi_periph/ARESETN] [get_bd_pins ps8_0_axi_periph/S01_ARESETN] [get_bd_pins axi_gpio_0/s_axi_aresetn] [get_bd_pins ps8_0_axi_periph/M01_ARESETN] [get_bd_pins axi_gpio_1/s_axi_aresetn] [get_bd_pins ps8_0_axi_periph/M02_ARESETN] [get_bd_pins axi_gpio_2/s_axi_aresetn] [get_bd_pins ps8_0_axi_periph/M03_ARESETN] [get_bd_pins axi_gpio_3/s_axi_aresetn] [get_bd_pins ps8_0_axi_periph/M04_ARESETN] [get_bd_pins axi_gpio_4/s_axi_aresetn] [get_bd_pins ps8_0_axi_periph/M05_ARESETN] [get_bd_pins axi_dma_0/axi_resetn] [get_bd_pins ps8_0_axi_periph/M06_ARESETN] [get_bd_pins axi_dma_1/axi_resetn] [get_bd_pins ps8_0_axi_periph/M07_ARESETN] [get_bd_pins axi_dma_2/axi_resetn] [get_bd_pins axi_gpio_5/s_axi_aresetn] [get_bd_pins ps8_0_axi_periph/M08_ARESETN] [get_bd_pins ps8_0_axi_periph/M09_ARESETN] [get_bd_pins axi_gpio_6/s_axi_aresetn] [get_bd_pins ps8_0_axi_periph/M10_ARESETN] [get_bd_pins ps8_0_axi_periph/M11_ARESETN] [get_bd_pins axi_gpio_7/s_axi_aresetn] [get_bd_pins axi_interconnect_0/ARESETN] [get_bd_pins axi_interconnect_0/S00_ARESETN] [get_bd_pins axi_interconnect_0/M00_ARESETN] [get_bd_pins axi_interconnect_0/M01_ARESETN] [get_bd_pins axi_gpio_8/s_axi_aresetn] [get_bd_pins axi_gpio_9/s_axi_aresetn] [get_bd_pins axi_interconnect_0/M02_ARESETN] [get_bd_pins axi_dma_3/axi_resetn] [get_bd_pins axi_interconnect_0/M03_ARESETN] [get_bd_pins axi_interconnect_0/M04_ARESETN] [get_bd_pins axi_gpio_10/s_axi_aresetn] [get_bd_pins axi_interconnect_0/M05_ARESETN] [get_bd_pins axi_gpio_11/s_axi_aresetn] [get_bd_pins axi_gpio_12/s_axi_aresetn] [get_bd_pins axi_interconnect_0/M06_ARESETN]
+  connect_bd_net -net usp_rf_data_converter_0_clk_adc0 [get_bd_pins usp_rf_data_converter_0/clk_adc1] [get_bd_pins usp_rf_data_converter_0/m0_axis_aclk] [get_bd_pins usp_rf_data_converter_0/m1_axis_aclk] [get_bd_pins usp_rf_data_converter_0/s0_axis_aclk] [get_bd_pins usp_rf_data_converter_0/s1_axis_aclk] [get_bd_pins proc_sys_reset_0/slowest_sync_clk] [get_bd_pins NCO_Wrapper_0/clk] [get_bd_pins AXISConstant_0/aclk] [get_bd_pins axis_broadcaster_0/aclk] [get_bd_pins AxisConstant14Samples_0/aclk] [get_bd_pins xpm_cdc_gen_1/dest_clk] [get_bd_pins xpm_cdc_gen_0/dest_clk] [get_bd_pins axis_tlast_gen_0/aclk] [get_bd_pins axi_dma_0/m_axi_s2mm_aclk] [get_bd_pins axis_tlast_gen_1/aclk] [get_bd_pins axi_dma_1/m_axi_s2mm_aclk] [get_bd_pins smartconnect_0/aclk] [get_bd_pins zynq_ultra_ps_e_0/saxihp0_fpd_aclk] [get_bd_pins axi_dma_2/m_axi_s2mm_aclk] [get_bd_pins axis_tlast_gen_2/aclk] [get_bd_pins PhaseExtractor_Wrapp_0/clk] [get_bd_pins PhaseExtractor_Wrapp_1/clk] [get_bd_pins ErrorSignalSignExten_0/clk] [get_bd_pins usp_rf_data_converter_0/m2_axis_aclk] [get_bd_pins ErrorSignalSignExten_1/clk] [get_bd_pins ps8_0_axi_periph/M13_ACLK] [get_bd_pins ps8_0_axi_periph/M12_ACLK] [get_bd_pins ErrorSignal_Wrapper_0/clk] [get_bd_pins axis_broadcaster_1/aclk] [get_bd_pins ps8_0_axi_periph/M14_ACLK] [get_bd_pins ps8_0_axi_periph/M15_ACLK] [get_bd_pins demod_ctrl_0/ap_clk] [get_bd_pins demod_err_0/ap_clk] [get_bd_pins demod_err_1/ap_clk] [get_bd_pins axi_dma_3/m_axi_s2mm_aclk] [get_bd_pins axis_tlast_gen_3/aclk] [get_bd_pins axis_broadcaster_2/aclk] [get_bd_pins ErrorSignalTruncation_0/clk] [get_bd_pins ErrorSignalTruncation_1/clk] [get_bd_pins axis_probe_0/clk] [get_bd_pins axis_power_mod_0/clk] [get_bd_pins PIController_Wrapper_0/clk] [get_bd_pins PhaseAccumulator_Wra_0/clk] [get_bd_pins perturbation_gen_0/ap_clk]
   connect_bd_net -net xpm_cdc_gen_0_dest_out [get_bd_pins xpm_cdc_gen_0/dest_out] [get_bd_pins PIController_Wrapper_0/loop_en]
   connect_bd_net -net xpm_cdc_gen_1_dest_out [get_bd_pins xpm_cdc_gen_1/dest_out] [get_bd_pins PIController_Wrapper_0/integrator_gpio_rst]
-  connect_bd_net -net zynq_ultra_ps_e_0_pl_clk0 [get_bd_pins zynq_ultra_ps_e_0/pl_clk0] [get_bd_pins zynq_ultra_ps_e_0/maxihpm0_fpd_aclk] [get_bd_pins ps8_0_axi_periph/S00_ACLK] [get_bd_pins rst_ps8_0_99M/slowest_sync_clk] [get_bd_pins usp_rf_data_converter_0/s_axi_aclk] [get_bd_pins ps8_0_axi_periph/M00_ACLK] [get_bd_pins ps8_0_axi_periph/ACLK] [get_bd_pins zynq_ultra_ps_e_0/maxihpm1_fpd_aclk] [get_bd_pins ps8_0_axi_periph/S01_ACLK] [get_bd_pins axi_gpio_0/s_axi_aclk] [get_bd_pins ps8_0_axi_periph/M01_ACLK] [get_bd_pins axi_gpio_1/s_axi_aclk] [get_bd_pins ps8_0_axi_periph/M02_ACLK] [get_bd_pins axi_gpio_2/s_axi_aclk] [get_bd_pins ps8_0_axi_periph/M03_ACLK] [get_bd_pins axi_gpio_3/s_axi_aclk] [get_bd_pins ps8_0_axi_periph/M04_ACLK] [get_bd_pins axi_gpio_4/s_axi_aclk] [get_bd_pins ps8_0_axi_periph/M05_ACLK] [get_bd_pins xpm_cdc_gen_0/src_clk] [get_bd_pins xpm_cdc_gen_1/src_clk] [get_bd_pins axi_dma_0/s_axi_lite_aclk] [get_bd_pins ps8_0_axi_periph/M06_ACLK] [get_bd_pins axi_dma_1/s_axi_lite_aclk] [get_bd_pins ps8_0_axi_periph/M07_ACLK] [get_bd_pins axi_dma_2/s_axi_lite_aclk] [get_bd_pins axi_gpio_5/s_axi_aclk] [get_bd_pins ps8_0_axi_periph/M08_ACLK] [get_bd_pins ps8_0_axi_periph/M09_ACLK] [get_bd_pins axi_gpio_6/s_axi_aclk] [get_bd_pins ps8_0_axi_periph/M10_ACLK] [get_bd_pins pmod_da2_trigger_0/clk] [get_bd_pins ps8_0_axi_periph/M11_ACLK] [get_bd_pins axi_gpio_7/s_axi_aclk] [get_bd_pins axi_interconnect_0/ACLK] [get_bd_pins axi_interconnect_0/S00_ACLK] [get_bd_pins axi_interconnect_0/M00_ACLK] [get_bd_pins axi_interconnect_0/M01_ACLK] [get_bd_pins axi_gpio_8/s_axi_aclk] [get_bd_pins axi_gpio_9/s_axi_aclk] [get_bd_pins axi_interconnect_0/M02_ACLK] [get_bd_pins axi_dma_3/s_axi_lite_aclk] [get_bd_pins axi_interconnect_0/M03_ACLK] [get_bd_pins axi_interconnect_0/M04_ACLK] [get_bd_pins axi_gpio_10/s_axi_aclk] [get_bd_pins axi_interconnect_0/M05_ACLK] [get_bd_pins axi_gpio_11/s_axi_aclk]
+  connect_bd_net -net zynq_ultra_ps_e_0_pl_clk0 [get_bd_pins zynq_ultra_ps_e_0/pl_clk0] [get_bd_pins zynq_ultra_ps_e_0/maxihpm0_fpd_aclk] [get_bd_pins ps8_0_axi_periph/S00_ACLK] [get_bd_pins rst_ps8_0_99M/slowest_sync_clk] [get_bd_pins usp_rf_data_converter_0/s_axi_aclk] [get_bd_pins ps8_0_axi_periph/M00_ACLK] [get_bd_pins ps8_0_axi_periph/ACLK] [get_bd_pins zynq_ultra_ps_e_0/maxihpm1_fpd_aclk] [get_bd_pins ps8_0_axi_periph/S01_ACLK] [get_bd_pins axi_gpio_0/s_axi_aclk] [get_bd_pins ps8_0_axi_periph/M01_ACLK] [get_bd_pins axi_gpio_1/s_axi_aclk] [get_bd_pins ps8_0_axi_periph/M02_ACLK] [get_bd_pins axi_gpio_2/s_axi_aclk] [get_bd_pins ps8_0_axi_periph/M03_ACLK] [get_bd_pins axi_gpio_3/s_axi_aclk] [get_bd_pins ps8_0_axi_periph/M04_ACLK] [get_bd_pins axi_gpio_4/s_axi_aclk] [get_bd_pins ps8_0_axi_periph/M05_ACLK] [get_bd_pins xpm_cdc_gen_0/src_clk] [get_bd_pins xpm_cdc_gen_1/src_clk] [get_bd_pins axi_dma_0/s_axi_lite_aclk] [get_bd_pins ps8_0_axi_periph/M06_ACLK] [get_bd_pins axi_dma_1/s_axi_lite_aclk] [get_bd_pins ps8_0_axi_periph/M07_ACLK] [get_bd_pins axi_dma_2/s_axi_lite_aclk] [get_bd_pins axi_gpio_5/s_axi_aclk] [get_bd_pins ps8_0_axi_periph/M08_ACLK] [get_bd_pins ps8_0_axi_periph/M09_ACLK] [get_bd_pins axi_gpio_6/s_axi_aclk] [get_bd_pins ps8_0_axi_periph/M10_ACLK] [get_bd_pins pmod_da2_trigger_0/clk] [get_bd_pins ps8_0_axi_periph/M11_ACLK] [get_bd_pins axi_gpio_7/s_axi_aclk] [get_bd_pins axi_interconnect_0/ACLK] [get_bd_pins axi_interconnect_0/S00_ACLK] [get_bd_pins axi_interconnect_0/M00_ACLK] [get_bd_pins axi_interconnect_0/M01_ACLK] [get_bd_pins axi_gpio_8/s_axi_aclk] [get_bd_pins axi_gpio_9/s_axi_aclk] [get_bd_pins axi_interconnect_0/M02_ACLK] [get_bd_pins axi_dma_3/s_axi_lite_aclk] [get_bd_pins axi_interconnect_0/M03_ACLK] [get_bd_pins axi_interconnect_0/M04_ACLK] [get_bd_pins axi_gpio_10/s_axi_aclk] [get_bd_pins axi_interconnect_0/M05_ACLK] [get_bd_pins axi_gpio_11/s_axi_aclk] [get_bd_pins axi_gpio_12/s_axi_aclk] [get_bd_pins axi_interconnect_0/M06_ACLK]
   connect_bd_net -net zynq_ultra_ps_e_0_pl_resetn0 [get_bd_pins zynq_ultra_ps_e_0/pl_resetn0] [get_bd_pins rst_ps8_0_99M/ext_reset_in] [get_bd_pins proc_sys_reset_0/ext_reset_in]
 
   # Create address segments
@@ -1202,6 +1229,7 @@ Port;FD4A0000;FD4AFFFF;0|FPD;DPDMA;FD4C0000;FD4CFFFF;0|FPD;DDR_XMPU5_CFG;FD05000
   assign_bd_address -offset 0xA0040000 -range 0x00010000 -target_address_space [get_bd_addr_spaces zynq_ultra_ps_e_0/Data] [get_bd_addr_segs axi_gpio_0/S_AXI/Reg] -force
   assign_bd_address -offset 0xA0120000 -range 0x00010000 -target_address_space [get_bd_addr_spaces zynq_ultra_ps_e_0/Data] [get_bd_addr_segs axi_gpio_10/S_AXI/Reg] -force
   assign_bd_address -offset 0xA0130000 -range 0x00010000 -target_address_space [get_bd_addr_spaces zynq_ultra_ps_e_0/Data] [get_bd_addr_segs axi_gpio_11/S_AXI/Reg] -force
+  assign_bd_address -offset 0xA0140000 -range 0x00010000 -target_address_space [get_bd_addr_spaces zynq_ultra_ps_e_0/Data] [get_bd_addr_segs axi_gpio_12/S_AXI/Reg] -force
   assign_bd_address -offset 0xA0050000 -range 0x00010000 -target_address_space [get_bd_addr_spaces zynq_ultra_ps_e_0/Data] [get_bd_addr_segs axi_gpio_1/S_AXI/Reg] -force
   assign_bd_address -offset 0xA0060000 -range 0x00010000 -target_address_space [get_bd_addr_spaces zynq_ultra_ps_e_0/Data] [get_bd_addr_segs axi_gpio_2/S_AXI/Reg] -force
   assign_bd_address -offset 0xA0070000 -range 0x00010000 -target_address_space [get_bd_addr_spaces zynq_ultra_ps_e_0/Data] [get_bd_addr_segs axi_gpio_3/S_AXI/Reg] -force

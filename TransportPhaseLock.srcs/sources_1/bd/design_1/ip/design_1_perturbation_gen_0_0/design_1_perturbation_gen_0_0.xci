@@ -4,7 +4,7 @@
     "xci_name": "design_1_perturbation_gen_0_0",
     "cell_name": "perturbation_gen_0",
     "component_reference": "xilinx.com:hls:perturbation_gen:1.0",
-    "ip_revision": "2114618379",
+    "ip_revision": "2114618470",
     "gen_directory": "../../../../../../TransportPhaseLock.gen/sources_1/bd/design_1/ip/design_1_perturbation_gen_0_0",
     "parameters": {
       "component_parameters": {
@@ -12,8 +12,8 @@
         "clk_period": [ { "value": "4.069", "enabled": false, "usage": "all" } ],
         "machine": [ { "value": "64", "enabled": false, "usage": "all" } ],
         "combinational": [ { "value": "0", "enabled": false, "usage": "all" } ],
-        "latency": [ { "value": "undef", "enabled": false, "usage": "all" } ],
-        "II": [ { "value": "undef", "enabled": false, "usage": "all" } ]
+        "latency": [ { "value": "6", "enabled": false, "usage": "all" } ],
+        "II": [ { "value": "1", "enabled": false, "usage": "all" } ]
       },
       "model_parameters": {
         "C_S_AXI_CTRL_ADDR_WIDTH": [ { "value": "7", "resolve_type": "generated", "format": "long", "usage": "all" } ],
@@ -35,7 +35,7 @@
       },
       "runtime_parameters": {
         "IPCONTEXT": [ { "value": "IP_Integrator" } ],
-        "IPREVISION": [ { "value": "2114618379" } ],
+        "IPREVISION": [ { "value": "2114618470" } ],
         "MANAGED": [ { "value": "TRUE" } ],
         "OUTPUTDIR": [ { "value": "../../../../../../TransportPhaseLock.gen/sources_1/bd/design_1/ip/design_1_perturbation_gen_0_0" } ],
         "SELECTEDSIMMODEL": [ { "value": "" } ],
