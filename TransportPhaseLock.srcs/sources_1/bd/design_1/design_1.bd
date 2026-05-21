@@ -6579,7 +6579,7 @@
       },
       "perturbation_gen_0": {
         "vlnv": "xilinx.com:hls:perturbation_gen:1.0",
-        "ip_revision": "2114618372",
+        "ip_revision": "2114618379",
         "xci_name": "design_1_perturbation_gen_0_0",
         "xci_path": "ip/design_1_perturbation_gen_0_0/design_1_perturbation_gen_0_0.xci",
         "inst_hier_path": "perturbation_gen_0"
@@ -8632,8 +8632,8 @@
       "ErrorSignal_Wrapper_0_error_signal_out": {
         "ports": [
           "ErrorSignal_Wrapper_0/error_signal_out",
-          "PIController_Wrapper_0/error_signal_unfolded",
-          "ErrorSignalTruncation_0/s_axis_tdata"
+          "ErrorSignalTruncation_0/s_axis_tdata",
+          "PIController_Wrapper_0/error_signal_unfolded"
         ]
       },
       "ErrorSignal_Wrapper_0_raw_error_out_tdata": {
@@ -8897,10 +8897,8 @@
           "usp_rf_data_converter_0/m2_axis_aresetn",
           "ps8_0_axi_periph/M13_ARESETN",
           "ps8_0_axi_periph/M12_ARESETN",
-          "PhaseAccumulator_Wra_0/rst_n",
           "ErrorSignal_Wrapper_0/rst_n",
           "axis_broadcaster_1/aresetn",
-          "PIController_Wrapper_0/rst_n",
           "ps8_0_axi_periph/M14_ARESETN",
           "ps8_0_axi_periph/M15_ARESETN",
           "demod_ctrl_0/ap_rst_n",
@@ -8910,6 +8908,8 @@
           "axis_broadcaster_2/aresetn",
           "axis_probe_0/rst_n",
           "axis_power_mod_0/rst_n",
+          "PIController_Wrapper_0/rst_n",
+          "PhaseAccumulator_Wra_0/rst_n",
           "perturbation_gen_0/ap_rst_n"
         ]
       },
@@ -8989,10 +8989,8 @@
           "ErrorSignalSignExten_1/clk",
           "ps8_0_axi_periph/M13_ACLK",
           "ps8_0_axi_periph/M12_ACLK",
-          "PhaseAccumulator_Wra_0/clk",
           "ErrorSignal_Wrapper_0/clk",
           "axis_broadcaster_1/aclk",
-          "PIController_Wrapper_0/clk",
           "ps8_0_axi_periph/M14_ACLK",
           "ps8_0_axi_periph/M15_ACLK",
           "demod_ctrl_0/ap_clk",
@@ -9005,6 +9003,8 @@
           "ErrorSignalTruncation_1/clk",
           "axis_probe_0/clk",
           "axis_power_mod_0/clk",
+          "PIController_Wrapper_0/clk",
+          "PhaseAccumulator_Wra_0/clk",
           "perturbation_gen_0/ap_clk"
         ]
       },
